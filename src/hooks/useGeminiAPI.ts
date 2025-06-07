@@ -39,8 +39,23 @@ export const useGeminiAPI = () => {
         - Cultural Preferences: ${userProfile.culturalPreferences}
         - Budget: PKR ${userProfile.budget}
         - Event: ${userProfile.eventType}
+        - Weather: ${userProfile.weather || 'Not specified'}
 
-        Please provide 2-3 outfit recommendations for ${genderSpecific} in the following JSON format:
+        Instructions for AI:
+        1. Provide 2-3 outfit recommendations for ${genderSpecific}.
+        2. Adapt clothing recommendations based on the weather:
+           - For "sunny": suggest lighter fabrics, breathable materials.
+           - For "rainy": suggest water-resistant or quick-drying materials, perhaps with layering options.
+           - For "cold": suggest warm layers, cozy fabrics, and appropriate outerwear.
+           - For "moderate": suggest versatile options that can adapt to slight temperature changes.
+        3. If weather is "Not specified", make general recommendations suitable for a mix of conditions or assume moderate.
+        4. Based on the user's cultural or religious background (\`${userProfile.religion}\`) and any \`culturalPreferences\` (\`${userProfile.culturalPreferences}\`) they've shared:
+           - Suggest traditional outfit ideas for relevant festivals or events (e.g., for 'Muslim (Pakistani)' consider Eid, Mehndi, Barat; for 'Hindu (Indian)' consider Holi, Diwali, weddings; for 'Christian (Western)' consider Christmas, Easter).
+           - Provide festival wear guides if appropriate for the \`eventType\` and \`religion\`.
+           - Include culturally accurate color suggestions (e.g., green for Eid; red/yellow for Mehndi/Holi; festive colors like red, green, gold for Christmas).
+           - If \`culturalPreferences\` mentions specific items (e.g., "hijab", "saree", "modest dress"), ensure recommendations align.
+
+        Output JSON format:
         {
           "recommendations": [
             {
@@ -48,26 +63,20 @@ export const useGeminiAPI = () => {
               "description": "string (warm, complimentary description)",
               "whySuitable": "string (explain why it's perfect for them with compliments)",
               "suggestedColors": ["color1", "color2", "color3"],
-              "fabricAndCut": "string",
-              "productLinks": [
-                {
-                  "brand": "string",
-                  "itemName": "specific item name",
-                  "url": "real working URL to actual product",
-                  "price": "PKR X,XXX (exact price)"
-                }
-              ]
+              "fabricAndCut": "string"
+              // "productLinks" array removed from example
             }
           ]
         }
 
         IMPORTANT: 
-        - Use REAL working URLs from Pakistani brands like Khaadi.com, Sapphire.pk, Limelight.pk, Sanasafinaz.com, Daraz.pk
-        - Provide EXACT prices in PKR within their budget range
-        - Be very complimentary and friendly like a best friend
-        - Consider their hair type for styling suggestions
-        - Respect cultural and religious preferences
+        - Do NOT include any shopping links, URLs, or specific product purchase locations. Recommendations should be informational and advisory only.
+        - Do NOT mention specific brand names or prices. Focus on style, fabric, colors, and why it's suitable.
+        - Be very complimentary and friendly like a best friend.
+        - Consider their hair type for styling suggestions.
+        - Respect cultural and religious preferences from \`religion\` and \`culturalPreferences\` fields.
         - Make them feel beautiful and confident
+        - Consider the weather in fabric and style choices.
       `;
 
       const response = await fetch(`${API_URL}?key=${API_KEY}`, {
@@ -109,71 +118,49 @@ export const useGeminiAPI = () => {
       console.error('Gemini API Error:', err);
       setError('Unable to connect to styling service. Showing sample recommendations.');
       
-      const name = userProfile.name || 'gorgeous';
+      const name = userProfile.name || 'there'; // More neutral default
       const isUrdu = userProfile.language === 'Roman Urdu';
+      const weatherCondition = userProfile.weather;
+      let weatherText = '';
+
+      if (weatherCondition) {
+        if (isUrdu) {
+          weatherText = `Kyunke mausam ${weatherCondition} hai, maine iska bhi khayal rakha hai. `;
+        } else {
+          weatherText = `Since the weather is ${weatherCondition}, I've kept that in mind for you. `;
+        }
+      }
       
       return [
         {
           outfitName: isUrdu ? `${name} ke liye Perfect ${userProfile.eventType} Look` : `Stunning ${userProfile.eventType} Ensemble for ${name}`,
-          description: isUrdu 
-            ? `${name} jaan, ye outfit tumpe bilkul amazing lagega! Tumhara ${userProfile.skinTone} skin tone aur ${userProfile.bodyType} figure ke saath ye combination bohot gorgeous hai!`
-            : `${name}, this outfit is absolutely perfect for you! With your beautiful ${userProfile.skinTone} skin tone and gorgeous ${userProfile.bodyType} figure, you'll look absolutely stunning!`,
-          whySuitable: isUrdu
+          description: (isUrdu
+            ? `${name}, ye outfit tumpe bilkul amazing lagega! ${weatherText}Tumhara ${userProfile.skinTone} skin tone aur ${userProfile.bodyType} figure ke saath ye combination bohot acha hai!`
+            : `${name}, this outfit is absolutely perfect for you! ${weatherText}With your ${userProfile.skinTone} skin tone and ${userProfile.bodyType} figure, you'll look absolutely stunning!`),
+          whySuitable: (isUrdu
             ? `Tumhara ${userProfile.bodyType} body type ke liye ye cut bilkul perfect hai, aur tumhare ${userProfile.hairType} hair ke saath ye styling bohot beautiful lagegi!`
-            : `This cut is absolutely perfect for your beautiful ${userProfile.bodyType} figure, and it will complement your gorgeous ${userProfile.hairType} hair perfectly!`,
+            : `This cut is absolutely perfect for your ${userProfile.bodyType} figure, and it will complement your ${userProfile.hairType} hair perfectly!`),
           suggestedColors: userProfile.skinTone === 'Fair' 
             ? ['Soft Pink', 'Mint Green', 'Ivory'] 
             : userProfile.skinTone === 'Deep' 
             ? ['Royal Blue', 'Emerald', 'Gold']
             : ['Coral', 'Turquoise', 'Cream'],
-          fabricAndCut: 'Premium chiffon with intricate embroidery, A-line silhouette for a flattering fit',
-          productLinks: [
-            {
-              brand: 'Khaadi',
-              itemName: 'Embroidered Chiffon Suit',
-              url: 'https://www.khaadi.com/pk/ready-to-wear/unstitched',
-              price: 'PKR 8,500'
-            },
-            {
-              brand: 'Sapphire',
-              itemName: 'Festive Collection Suit',
-              url: 'https://sapphireonline.pk/collections/unstitched',
-              price: 'PKR 6,200'
-            },
-            {
-              brand: 'Limelight',
-              itemName: 'Designer Embroidered Outfit',
-              url: 'https://www.limelight.pk/collections/unstitched',
-              price: 'PKR 4,800'
-            }
-          ]
+          fabricAndCut: 'Premium chiffon with intricate embroidery, A-line silhouette for a flattering fit'
+          // productLinks removed
         },
         {
-          outfitName: isUrdu ? `${name} ki Elegant Choice` : `Elegant Choice for Beautiful ${name}`,
-          description: isUrdu
-            ? `Yaar ye second option bhi tumpe bohot suit karega! Tumhara taste bohot acha hai, is liye main ye bhi suggest kar rahi hun.`
-            : `Sweetie, this second option will also look absolutely divine on you! You have such amazing taste, so I know you'll love this too.`,
-          whySuitable: isUrdu
+          outfitName: isUrdu ? `${name} ki Elegant Choice` : `Elegant Choice for ${name}`,
+          description: (isUrdu
+            ? `Yeh second option bhi tumpe bohot suit karega! ${weatherText}Tumhara taste bohot acha hai, is liye main ye bhi suggest kar rahi hun.`
+            : `This second option will also look absolutely great on you! ${weatherText}You have such amazing taste, so I know you'll love this too.`),
+          whySuitable: (isUrdu
             ? `Tumhare cultural preferences aur ${userProfile.eventType} event ke liye ye bilkul perfect hai!`
-            : `This respects your cultural preferences perfectly and is ideal for your ${userProfile.eventType} event!`,
+            : `This respects your cultural preferences perfectly and is ideal for your ${userProfile.eventType} event!`),
           suggestedColors: ['Deep Maroon', 'Gold', 'Cream'],
-          fabricAndCut: 'Luxurious silk with traditional embellishments',
-          productLinks: [
-            {
-              brand: 'Sana Safinaz',
-              itemName: 'Luxury Silk Collection',
-              url: 'https://www.sanasafinaz.com/pk/ready-to-wear',
-              price: 'PKR 12,000'
-            },
-            {
-              brand: 'Daraz',
-              itemName: 'Premium Designer Suit',
-              url: 'https://www.daraz.pk/womens-clothing/',
-              price: 'PKR 5,500'
-            }
-          ]
+          fabricAndCut: 'Luxurious silk with traditional embellishments'
+          // productLinks removed
         }
-      ];
+      ].slice(0, weatherCondition === 'cold' || weatherCondition === 'rainy' ? 1 : 2); // Fewer options if cold/rainy
     } finally {
       setLoading(false);
     }

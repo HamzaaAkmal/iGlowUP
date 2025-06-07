@@ -6,9 +6,11 @@ import Header from './components/Header';
 import ChatBubble from './components/ChatBubble';
 import InputCard from './components/InputCard';
 import StyleRecommendations from './components/StyleRecommendations';
+import PrivacyModal from './components/PrivacyModal'; // Import PrivacyModal
 import { Send, Mic } from 'lucide-react';
 
 function App() {
+  const [hasAgreedToPrivacy, setHasAgreedToPrivacy] = useState(false); // Add state for privacy agreement
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userProfile, setUserProfile] = useState<Partial<UserProfile>>({});
@@ -25,69 +27,120 @@ function App() {
   useEffect(scrollToBottom, [messages]);
 
   useEffect(() => {
-    // Initial greeting
-    const welcomeMessage: ChatMessage = {
-      id: '1',
-      type: 'bot',
-      content: '✨ Assalam-o-Alaikum! Hello gorgeous! I\'m GlowBot, your personal style bestie! 💕 I\'m absolutely thrilled to help you discover the most stunning Pakistani fashion styles that will make you look and feel like the queen you are! Let\'s start this amazing styling journey together and make you shine! ✨👑',
-      timestamp: new Date()
-    };
-    
-    setMessages([welcomeMessage]);
-    
-    // Ask first question after a delay
-    setTimeout(() => {
-      askCurrentQuestion();
-    }, 1500);
-  }, []);
+    if (hasAgreedToPrivacy) {
+      // If messages are empty, it means this is the first load after agreeing to privacy.
+      // Ask the first question (agent selection).
+      if (messages.length === 0) {
+        setMessages([]); // Ensure messages are truly empty before starting
+        askCurrentQuestion(true); // Pass true to indicate it's the initial call
+      }
+    }
+  }, [hasAgreedToPrivacy, messages.length]); // Rerun if messages.length changes to ensure it only runs once post-agreement
 
   const getPersonalizedMessage = (questionIndex: number) => {
-    const name = userProfile.name || 'beautiful';
-    const gender = userProfile.gender;
+    const name = userProfile.name || 'Friend'; // Default to "Friend" if name not yet provided
+    const agentGender = userProfile.gender; // This is the selected agent's gender
     const language = userProfile.language;
-    
-    const pronoun = gender === 'Male' ? 'him' : gender === 'Female' ? 'her' : 'them';
-    const title = gender === 'Male' ? 'handsome' : gender === 'Female' ? 'gorgeous' : 'beautiful';
-    
+
+    // Check if name question has been answered (index 1 is name)
+    const nameProvided = !!userProfile.name;
+
     if (language === 'Roman Urdu') {
-      const urduMessages = [
-        `${name} jaan, ab mujhe batao...`,
-        `Bilkul perfect ${name}! Ab next sawal...`,
-        `Mashallah ${name}, tumhara jawab bohot acha hai! Ab...`,
-        `${name} beta, tum kitni smart ho! Ab mujhe ye batao...`,
-        `Wah ${name}! Tumhara taste bohot acha hai. Ab...`
-      ];
-      return urduMessages[Math.min(questionIndex - 3, urduMessages.length - 1)];
-    } else {
-      const englishMessages = [
-        `Perfect ${name}! You're doing amazing, ${title}! Now let me ask you...`,
-        `Wonderful choice ${name}! I can already see your great taste! Next question...`,
-        `${name}, you're absolutely glowing already! Now tell me...`,
-        `Love it ${name}! You're making this so easy for me! Let's continue...`,
-        `${name}, you have such great style sense! Now I need to know...`
-      ];
-      return englishMessages[Math.min(questionIndex - 3, englishMessages.length - 1)];
+      if (agentGender === 'female') {
+        const urduMessagesFemale = nameProvided ? [
+          `Theek hai ${name}! Chalo agay barhtay hain...`,
+          `Bohat acha ${name}! Ab mujhe yeh batao...`,
+          `Samajh gayi ${name}! Next sawal yeh hai...`,
+          `Bilkul ${name}! Ab iske baray mein kya khayal hai...?`
+        ] : [ // Generic messages if name not yet provided
+          `Theek hai! Chalo agay barhtay hain...`,
+          `Bohat acha! Ab mujhe yeh batao...`,
+        ];
+        return urduMessagesFemale[Math.floor(Math.random() * urduMessagesFemale.length)];
+      } else { // male agent
+        const urduMessagesMale = nameProvided ? [
+          `Okay ${name}. Agla sawal...`,
+          `Theek hai ${name}. Ab yeh batayen...`,
+          `Samajh gaya ${name}. Next...`,
+          `Bilkul ${name}. Iske baray mein kya socha hai...?`
+        ] : [ // Generic messages if name not yet provided
+          `Okay. Agla sawal...`,
+          `Theek hai. Ab yeh batayen...`,
+        ];
+        return urduMessagesMale[Math.floor(Math.random() * urduMessagesMale.length)];
+      }
+    } else { // English
+      if (agentGender === 'female') {
+        const englishMessagesFemale = nameProvided ? [
+          `Alright ${name}! Let's move on to the next question...`,
+          `Great choice, ${name}! Now, tell me about...`,
+          `Got it, ${name}! My next question for you is...`,
+          `Perfect, ${name}! And what about...?`
+        ] : [ // Generic messages if name not yet provided
+          `Alright! Let's move on to the next question...`,
+          `Great choice! Now, tell me about...`,
+        ];
+        return englishMessagesFemale[Math.floor(Math.random() * englishMessagesFemale.length)];
+      } else { // male agent
+        const englishMessagesMale = nameProvided ? [
+          `Okay ${name}, that's helpful. Next up...`,
+          `Understood, ${name}. Let's get some more details...`,
+          `Got it, ${name}. The next thing I need to know is...`,
+          `Alright ${name}. And how about...?`
+        ] : [ // Generic messages if name not yet provided
+          `Okay, that's helpful. Next up...`,
+          `Understood. Let's get some more details...`,
+        ];
+        return englishMessagesMale[Math.floor(Math.random() * englishMessagesMale.length)];
+      }
     }
   };
 
-  const askCurrentQuestion = () => {
+  const askCurrentQuestion = (isInitialCall = false) => {
+    // Do not ask if privacy not agreed AND it's not the initial call post-agreement.
+    if (!hasAgreedToPrivacy && !isInitialCall) return;
+
     if (currentQuestionIndex < formQuestions.length) {
       const question = formQuestions[currentQuestionIndex];
       let content = question.title;
       
-      // Add personalized message for questions after name
-      if (currentQuestionIndex > 2 && userProfile.name) {
+      // Add personalized message only after the first three questions (agent, name, language)
+      // and if name is available.
+      if (currentQuestionIndex > 2 && userProfile.name && userProfile.gender && userProfile.language) {
         content = getPersonalizedMessage(currentQuestionIndex) + ' ' + question.title;
+      } else {
+        // For the first few questions, or if name/gender/language isn't set, use the plain title.
+        content = question.title;
       }
       
-      const questionMessage: ChatMessage = {
+      const newQuestionMessage: ChatMessage = {
         id: `q-${currentQuestionIndex}`,
         type: 'bot',
         content: content,
         timestamp: new Date()
       };
-      
-      setMessages(prev => [...prev, questionMessage]);
+
+      // Add typing indicator for bot question
+      setMessages(prev => [...prev, {
+        id: 'typing-bot',
+        type: 'bot',
+        content: '...', // Content doesn't matter for typing indicator
+        timestamp: new Date(),
+        isTyping: true,
+        // agentType: userProfile.gender as ('female' | 'male' | undefined)
+      }]);
+
+      const delay = isInitialCall ? 500 : Math.random() * (2000 - 1200) + 1200; // Shorter delay for first question
+
+      setTimeout(() => {
+        setMessages(prev => prev.filter(m => m.id !== 'typing-bot')); // Remove typing indicator
+        setMessages(prev => { // Add actual question
+          if (prev.find(msg => msg.id === newQuestionMessage.id)) {
+            return prev;
+          }
+          return [...prev, newQuestionMessage];
+        });
+      }, delay);
     }
   };
 
@@ -104,69 +157,112 @@ function App() {
 
     setMessages(prev => [...prev, userMessage]);
 
-    // Update user profile
-    const updatedProfile = {
-      ...userProfile,
-      [question.id]: answer
-    };
-    setUserProfile(updatedProfile);
-
-    // Reset current answer
+    const tempProfile = { ...userProfile, [question.id]: answer };
+    setUserProfile(tempProfile);
     setCurrentAnswer('');
 
-    // Move to next question or complete
     if (currentQuestionIndex < formQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
+      // The existing 800ms delay before calling askCurrentQuestion can remain.
+      // askCurrentQuestion itself now handles the typing indicator for the *next* question.
       setTimeout(() => {
         askCurrentQuestion();
       }, 800);
     } else {
-      // All questions completed
       setIsCompleted(true);
-      
-      const name = updatedProfile.name || 'beautiful';
-      const language = updatedProfile.language;
-      
-      let completionText;
-      if (language === 'Roman Urdu') {
-        completionText = `🎉 Mashallah ${name}! Tumne sab kuch perfect bataya hai! Ab main tumhare liye bilkul perfect styling recommendations bana rahi hun. Thoda intezar karo, main tumhare liye kuch bohot special dhund rahi hun! ✨💕`;
-      } else {
-        completionText = `🎉 Perfect ${name}! You've given me everything I need to create the most amazing style recommendations just for you! I'm so excited to show you what I've found - you're going to look absolutely stunning! ✨👑`;
-      }
-      
-      const completionMessage: ChatMessage = {
-        id: 'completion',
-        type: 'bot',
-        content: completionText,
-        timestamp: new Date(),
-        isTyping: true
-      };
-      
-      setMessages(prev => [...prev, completionMessage]);
+      const finalProfile = tempProfile as UserProfile;
+      const name = finalProfile.name || 'Friend';
+      const agentGender = finalProfile.gender as ('female' | 'male' | undefined);
+      const language = finalProfile.language;
 
-      // Generate recommendations
-      try {
-        const recs = await generateStyleRecommendation(updatedProfile as UserProfile);
-        setRecommendations(recs);
-        
-        let successText;
+      // Add typing indicator for completion message
+      setMessages(prev => [...prev, {
+        id: 'typing-completion',
+        type: 'bot',
+        content: '...',
+        timestamp: new Date(),
+        isTyping: true,
+        // agentType: agentGender
+      }]);
+
+      setTimeout(async () => {
+        setMessages(prev => prev.filter(m => m.id !== 'typing-completion'));
+
+        let completionText = '';
         if (language === 'Roman Urdu') {
-          successText = `✨ ${name} jaan, dekho main tumhare liye kya amazing outfits dhundi hun! Har outfit tumhare body type, skin tone aur preferences ke hisab se specially select kiya gaya hai. Tumhe bilkul princess lagegi! 👑💕`;
-        } else {
-          successText = `✨ ${name}, here are your absolutely gorgeous personalized style recommendations! Each outfit has been lovingly selected based on your beautiful features, preferences, and the occasion. You're going to look like the absolute queen you are! 👑💕`;
+          if (agentGender === 'female') {
+            completionText = `🎉 Zabardast ${name}! Aapne saari details de di hain! Ab main aapke liye kuch khaas recommendations tayyar kar rahi hoon. Thora sa intezar karen, kuch mazedaar aanay wala hai! ✨`;
+          } else {
+            completionText = `🎉 Bohat khoob ${name}! Aapne sab kuch bata diya hai. Main ab aapke liye behtareen style recommendations generate kar raha hoon. Bas thora sa waqt den! 👍`;
+          }
+        } else { // English
+          if (agentGender === 'female') {
+            completionText = `🎉 Awesome ${name}! You've provided all the details! I'm now whipping up some special recommendations for you. Hold tight, something exciting is coming your way! ✨`;
+          } else {
+            completionText = `🎉 Excellent ${name}! You've given me all I need. I'm now generating the best style recommendations for you. Just a moment! 👍`;
+          }
         }
         
-        const successMessage: ChatMessage = {
-          id: 'success',
-          type: 'bot',
-          content: successText,
-          timestamp: new Date()
+        const completionMessageObj: ChatMessage = {
+          id: 'completion', type: 'bot', content: completionText, timestamp: new Date(),
+          // agentType: agentGender,
+          // isTyping: true // This message itself can act as a "processing" message
         };
-        
-        setMessages(prev => prev.filter(m => m.id !== 'completion').concat([successMessage]));
-      } catch (err) {
-        console.error('Error generating recommendations:', err);
-      }
+        setMessages(prev => [...prev, completionMessageObj]);
+
+        try {
+          const recs = await generateStyleRecommendation(finalProfile);
+          setRecommendations(recs);
+
+          setMessages(prev => prev.filter(m => m.id !== 'completion')); // Remove "generating..." message
+          setMessages(prev => [...prev, { // Add typing for results
+            id: 'typing-result', type: 'bot', content: '...', timestamp: new Date(), isTyping: true,
+            // agentType: agentGender
+          }]);
+
+          setTimeout(() => {
+            setMessages(prev => prev.filter(m => m.id !== 'typing-result'));
+            let successText = '';
+            if (language === 'Roman Urdu') {
+              if (agentGender === 'female') {
+                successText = `✨ Yeh lijiye ${name}! Aapke liye kuch khaas outfits jo maine select kiye hain. Har aik aapke style aur preferences ke mutabiq hai. Umeed hai aapko pasand ayenge! 😊`;
+              } else {
+                successText = `✨ ${name}, yeh hain aapke liye recommendations. Maine aapke body type, skin tone, aur preferences ko dhyaan mein rakha hai. Dekhen aur batayen! 👌`;
+              }
+            } else { // English
+              if (agentGender === 'female') {
+                successText = `✨ Here you go, ${name}! These are the special outfits I've picked out for you. Each one is tailored to your style and preferences. I hope you love them! 😊`;
+              } else {
+                successText = `✨ ${name}, here are your recommendations. I've considered your body type, skin tone, and preferences. Check them out and let me know what you think! 👌`;
+              }
+            }
+            const successMessageObj: ChatMessage = {
+              id: 'success', type: 'bot', content: successText, timestamp: new Date(),
+              // agentType: agentGender
+            };
+            setMessages(prev => [...prev, successMessageObj]);
+          }, 1200);
+
+        } catch (err) {
+          console.error('Error generating recommendations:', err);
+          setMessages(prev => prev.filter(m => m.id !== 'completion')); // Remove "generating..." message
+          setMessages(prev => [...prev, { // Add typing for error
+            id: 'typing-error', type: 'bot', content: '...', timestamp: new Date(), isTyping: true,
+            // agentType: agentGender
+          }]);
+
+          setTimeout(() => {
+            setMessages(prev => prev.filter(m => m.id !== 'typing-error'));
+            const errorMsgContent = language === 'Roman Urdu'
+              ? "Oops! Recommendations generate karte hue kuch masla hogaya. Please thori dair baad try karen."
+              : "Oops! Something went wrong while generating recommendations. Please try again later.";
+            setMessages(prev => [...prev, {
+              id: 'error-recs', type: 'bot', content: errorMsgContent, timestamp: new Date(),
+              // agentType: agentGender
+            }]);
+          }, 1200);
+        }
+      }, 1500); // Delay before showing completionMessage and starting API call
     }
   };
 
@@ -176,6 +272,10 @@ function App() {
 
   const currentQuestion = getCurrentQuestion();
 
+  if (!hasAgreedToPrivacy) {
+    return <PrivacyModal onAgree={() => setHasAgreedToPrivacy(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-white">
       <Header />
@@ -184,7 +284,11 @@ function App() {
         {/* Chat Messages */}
         <div className="mb-6">
           {messages.map((message) => (
-            <ChatBubble key={message.id} message={message} />
+            <ChatBubble
+              key={message.id}
+              message={message}
+              agentType={message.type === 'bot' ? userProfile.gender as ('female' | 'male' | undefined) : undefined}
+            />
           ))}
           
           {/* Current Question Input */}
@@ -247,8 +351,17 @@ function App() {
       </div>
 
       {/* Footer */}
-      <footer className="text-center py-6 text-gray-500 text-sm">
-        <p>Made with 💖 by iGlowUP Pakistan | Powered by AI | Your Personal Style Bestie</p>
+      <footer className="text-center py-8 text-gray-600 text-sm border-t border-gray-200 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="flex justify-center space-x-6 mb-3">
+            <a href="#" className="hover:text-pink-600 transition-colors">Disclaimer</a>
+            <a href="#" className="hover:text-pink-600 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-pink-600 transition-colors">Contact Us</a>
+          </div>
+          <p className="text-gray-500">
+            © 2025 iGlowup. Built with ❤️ by DownLabs.
+          </p>
+        </div>
       </footer>
     </div>
   );

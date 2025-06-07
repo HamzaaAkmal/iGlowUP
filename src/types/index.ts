@@ -11,6 +11,7 @@ export interface UserProfile {
   culturalPreferences: string;
   budget: string;
   eventType: string;
+  weather?: string; // Added weather property
 }
 
 export interface ChatMessage {
@@ -28,10 +29,5 @@ export interface StyleRecommendation {
   suggestedColors: string[];
   fabricAndCut: string;
   imageUrls?: string[];
-  productLinks?: Array<{
-    brand: string;
-    url: string;
-    price: string;
-    itemName: string;
-  }>;
+  // productLinks property removed
 }

@@ -69,43 +69,15 @@ const StyleRecommendations: React.FC<StyleRecommendationsProps> = ({ recommendat
               </div>
             </div>
 
-            {rec.productLinks && rec.productLinks.length > 0 && (
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">
-                  {isUrdu ? `${name}, ye dekho - Shopping Links:` : `Shop These Gorgeous Pieces, ${name}:`}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {rec.productLinks.map((link, idx) => (
-                    <a
-                      key={idx}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-pink-25 rounded-lg hover:from-pink-50 hover:to-rose-50 hover:border-pink-200 border border-gray-200 transition-all group shadow-sm hover:shadow-md transform hover:scale-105"
-                    >
-                      <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-800 group-hover:text-pink-800 mb-1">
-                          {link.brand}
-                        </div>
-                        <div className="text-xs text-gray-600 mb-1 line-clamp-2">
-                          {link.itemName}
-                        </div>
-                        <div className="text-sm font-semibold text-pink-600">
-                          {link.price}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-1 ml-2">
-                        <ShoppingBag className="w-4 h-4 text-gray-400 group-hover:text-pink-600" />
-                        <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-pink-600" />
-                      </div>
-                    </a>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  {isUrdu ? 'Prices may vary. Click to check current prices.' : 'Prices may vary. Click to check current prices.'}
-                </p>
-              </div>
-            )}
+            {/* Product links section removed */}
+
+            <div className="mt-6 pt-4 border-t border-pink-100">
+              <p className="text-xs text-gray-600 text-center italic">
+                {isUrdu
+                  ? 'Aap is tarah ke styles apne pasandeeda local ya online stores par explore kar sakti hain.'
+                  : 'You may explore similar styles at your preferred local or online stores.'}
+              </p>
+            </div>
 
             <div className="mt-4 p-3 bg-gradient-to-r from-pink-25 to-rose-25 rounded-lg border border-pink-100">
               <p className="text-sm text-pink-700 text-center">
