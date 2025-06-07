@@ -39,7 +39,7 @@ const InputCard: React.FC<InputCardProps> = ({
           <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all"
+            className="w-full p-3 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-all duration-300"
           >
             <option value="">Select an option</option>
             {options.map((option) => (
@@ -56,7 +56,7 @@ const InputCard: React.FC<InputCardProps> = ({
             {options.map((option) => (
               <label
                 key={option.value}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all transform hover:scale-105 ${
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-105 ${
                   value === option.value
                     ? 'border-pink-400 bg-gradient-to-r from-pink-50 to-rose-50 text-pink-800 shadow-md'
                     : 'border-gray-200 hover:border-pink-300 hover:bg-pink-25 shadow-sm hover:shadow-md'
@@ -79,7 +79,7 @@ const InputCard: React.FC<InputCardProps> = ({
                     )}
                   </div>
                 </div>
-                <div className={`ml-auto w-5 h-5 border-2 rounded-full transition-all ${
+                <div className={`ml-auto w-5 h-5 border-2 rounded-full transition-all duration-300 ${
                   value === option.value ? 'border-pink-400 bg-pink-400 shadow-lg' : 'border-gray-300'
                 }`}>
                   {value === option.value && (
@@ -120,7 +120,7 @@ const InputCard: React.FC<InputCardProps> = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full p-4 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent resize-none shadow-sm hover:shadow-md transition-all"
+            className="w-full p-4 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent resize-none shadow-sm hover:shadow-md transition-all duration-300"
             rows={4}
           />
         );

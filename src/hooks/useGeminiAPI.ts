@@ -54,22 +54,28 @@ export const useGeminiAPI = () => {
            - Provide festival wear guides if appropriate for the \`eventType\` and \`religion\`.
            - Include culturally accurate color suggestions (e.g., green for Eid; red/yellow for Mehndi/Holi; festive colors like red, green, gold for Christmas).
            - If \`culturalPreferences\` mentions specific items (e.g., "hijab", "saree", "modest dress"), ensure recommendations align.
+        5. The event type (\`${userProfile.eventType}\`) should be considered in strong conjunction with the user's religion (\`${userProfile.religion}\`) for culturally appropriate suggestions. Ensure the suggested outfits are suitable for BOTH the event and the cultural context.
+        6. For each recommendation, provide a \`suggestedDressName\` which is a specific and descriptive name for the outfit that the user could theoretically use for searching (e.g., 'Rose Pink Embroidered Lehenga Choli', 'Charcoal Grey Slim-Fit Sherwani').
+        7. Also, provide a \`suggestedColorPalette\` as a descriptive string summarizing the key colors and their combination (e.g., 'Rose Pink with Gold embroidery and Mint Green dupatta', 'Charcoal Grey with Silver buttons and a Cream pocket square').
+
 
         Output JSON format:
         {
           "recommendations": [
             {
-              "outfitName": "string",
+              "outfitName": "string (General title for the outfit suggestion)",
+              "suggestedDressName": "string (Specific, searchable name like 'Emerald Green Anarkali Suit' or 'Classic Navy Blue Kurta Set')",
               "description": "string (warm, complimentary description)",
               "whySuitable": "string (explain why it's perfect for them with compliments)",
               "suggestedColors": ["color1", "color2", "color3"],
+              "suggestedColorPalette": "string (Descriptive palette like 'Emerald Green with Gold and Cream accents' or 'Navy Blue, White, and Silver')",
               "fabricAndCut": "string"
-              // "productLinks" array removed from example
             }
           ]
         }
 
         IMPORTANT: 
+        - Populate ALL fields in the JSON structure, including \`suggestedDressName\` and \`suggestedColorPalette\`.
         - Do NOT include any shopping links, URLs, or specific product purchase locations. Recommendations should be informational and advisory only.
         - Do NOT mention specific brand names or prices. Focus on style, fabric, colors, and why it's suitable.
         - Be very complimentary and friendly like a best friend.
@@ -145,8 +151,9 @@ export const useGeminiAPI = () => {
             : userProfile.skinTone === 'Deep' 
             ? ['Royal Blue', 'Emerald', 'Gold']
             : ['Coral', 'Turquoise', 'Cream'],
-          fabricAndCut: 'Premium chiffon with intricate embroidery, A-line silhouette for a flattering fit'
-          // productLinks removed
+          fabricAndCut: 'Premium chiffon with intricate embroidery, A-line silhouette for a flattering fit',
+          suggestedDressName: isUrdu ? 'Shahi Chiffon Anarkali' : 'Royal Chiffon Anarkali',
+          suggestedColorPalette: isUrdu ? 'Halka Gulabi aur Sabz, Sunehri kaam ke saath' : 'Soft Pink and Mint Green with Gold embroidery'
         },
         {
           outfitName: isUrdu ? `${name} ki Elegant Choice` : `Elegant Choice for ${name}`,
@@ -157,8 +164,9 @@ export const useGeminiAPI = () => {
             ? `Tumhare cultural preferences aur ${userProfile.eventType} event ke liye ye bilkul perfect hai!`
             : `This respects your cultural preferences perfectly and is ideal for your ${userProfile.eventType} event!`),
           suggestedColors: ['Deep Maroon', 'Gold', 'Cream'],
-          fabricAndCut: 'Luxurious silk with traditional embellishments'
-          // productLinks removed
+          fabricAndCut: 'Luxurious silk with traditional embellishments',
+          suggestedDressName: isUrdu ? 'Nawabi Silk Sherwani' : 'Regal Silk Sherwani',
+          suggestedColorPalette: isUrdu ? 'Gehra Maroon aur Sunehra' : 'Deep Maroon and Gold'
         }
       ].slice(0, weatherCondition === 'cold' || weatherCondition === 'rainy' ? 1 : 2); // Fewer options if cold/rainy
     } finally {

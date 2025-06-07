@@ -1,7 +1,11 @@
 import React from 'react';
 import { User, Settings, HelpCircle, Sparkles } from 'lucide-react';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  agentPersona?: 'female' | 'male';
+}
+
+const Header: React.FC<HeaderProps> = ({ agentPersona }) => {
   return (
     <header className="bg-gradient-to-r from-pink-100 to-rose-100 shadow-sm border-b border-pink-200">
       {/* Beta Banner */}
@@ -16,7 +20,11 @@ const Header: React.FC = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-800">iGlowup</h1>
-              <p className="text-sm text-pink-600 font-medium">Your Personal Fashion Stylist</p>
+              <p className="text-sm text-pink-600 font-medium flex items-center">
+                {agentPersona === 'female' && <span role="img" aria-label="Friendly girl agent" className="mr-1 text-lg">💁</span>}
+                {agentPersona === 'male' && <span role="img" aria-label="Smart guy agent" className="mr-1 text-lg">🧑</span>}
+                Your Personal Fashion Stylist
+              </p>
             </div>
           </div>
           

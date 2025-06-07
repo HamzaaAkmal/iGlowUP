@@ -44,10 +44,28 @@ const StyleRecommendations: React.FC<StyleRecommendationsProps> = ({ recommendat
               <p className="text-pink-700 text-sm">{rec.whySuitable}</p>
             </div>
 
+            {/* Suggested Dress Name and Color Palette */}
+            {(rec.suggestedDressName || rec.suggestedColorPalette) && (
+              <div className="my-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                {rec.suggestedDressName && (
+                  <div className="mb-2">
+                    <h4 className="text-sm font-semibold text-gray-700">Suggested Outfit Name:</h4>
+                    <p className="text-gray-600 text-sm">{rec.suggestedDressName}</p>
+                  </div>
+                )}
+                {rec.suggestedColorPalette && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700">Suggested Color Palette:</h4>
+                    <p className="text-gray-600 text-sm">{rec.suggestedColorPalette}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">
-                  {isUrdu ? 'Tumhare liye Best Colors:' : 'Perfect Colors for You:'}
+                  {isUrdu ? 'Tumhare liye Best Colors:' : 'Key Colors:'} {/* Changed label slightly */}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {rec.suggestedColors.map((color, idx) => (

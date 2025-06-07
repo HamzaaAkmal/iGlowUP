@@ -26,8 +26,10 @@ export interface StyleRecommendation {
   outfitName: string;
   description: string;
   whySuitable: string;
-  suggestedColors: string[];
+  suggestedColors: string[]; // Existing general color suggestions
   fabricAndCut: string;
   imageUrls?: string[];
   // productLinks property removed
+  suggestedDressName?: string; // New: Specific, searchable dress name
+  suggestedColorPalette?: string; // New: Descriptive color palette
 }

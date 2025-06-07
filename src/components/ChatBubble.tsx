@@ -22,7 +22,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, agentType }) => {
   };
 
   return (
-    <div className={`flex items-start space-x-3 ${isBot ? 'justify-start' : 'justify-end'} mb-4`}>
+    <div className={`flex items-start space-x-3 ${isBot ? 'justify-start' : 'justify-end'} mb-4 animate-fadeInUpSmooth`}>
       {isBot && (
         <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
           {renderBotAvatar()}

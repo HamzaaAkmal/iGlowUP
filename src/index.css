@@ -62,6 +62,21 @@
   animation: fadeIn 0.3s ease-out;
 }
 
+/* Added fadeInUpSmooth animation without @layer for now */
+@keyframes fadeInUpSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeInUpSmooth {
+  animation: fadeInUpSmooth 0.3s ease-out forwards;
+}
+
 /* Glow effects */
 .glow-pink {
   box-shadow: 0 0 20px rgba(244, 114, 182, 0.3);

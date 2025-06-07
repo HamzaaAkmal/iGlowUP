@@ -9,6 +9,31 @@ import StyleRecommendations from './components/StyleRecommendations';
 import PrivacyModal from './components/PrivacyModal'; // Import PrivacyModal
 import { Send, Mic } from 'lucide-react';
 
+// Define MASTER_EVENT_OPTIONS at module scope
+const MASTER_EVENT_OPTIONS = [
+  // Muslim-specific
+  { value: 'Mehndi', label: 'Mehndi', description: 'Vibrant and festive!', icon: '🎨', applicableToReligion: ['Muslim (Pakistani)'] },
+  { value: 'Barat', label: 'Barat', description: 'Elegant and formal!', icon: '👑', applicableToReligion: ['Muslim (Pakistani)'] },
+  { value: 'Walima', label: 'Walima', description: 'Graceful and sophisticated!', icon: '✨', applicableToReligion: ['Muslim (Pakistani)'] },
+  { value: 'Eid', label: 'Eid', description: 'Traditional and joyful!', icon: '🌙', applicableToReligion: ['Muslim (Pakistani)'] },
+  // Hindu-specific
+  { value: 'Holi', label: 'Holi', description: 'Festival of colors!', icon: '🌈', applicableToReligion: ['Hindu (Indian)'] },
+  { value: 'Diwali', label: 'Diwali', description: 'Festival of lights!', icon: '🪔', applicableToReligion: ['Hindu (Indian)'] },
+  { value: 'Hindu Wedding', label: 'Hindu Wedding', description: 'Grand celebrations!', icon: '⚭', applicableToReligion: ['Hindu (Indian)'] },
+  // Christian-specific
+  { value: 'Christmas', label: 'Christmas', description: 'Festive and joyous!', icon: '🎄', applicableToReligion: ['Christian (Western)'] },
+  { value: 'Easter', label: 'Easter', description: 'Celebratory and hopeful!', icon: '🕊️', applicableToReligion: ['Christian (Western)'] },
+  // General - applicable to 'all'
+  { value: 'Wedding Guest', label: 'Wedding Guest (General)', description: 'Celebrate with friends/family!', icon: '💒', applicableToReligion: ['all'] },
+  { value: 'Birthday Party', label: 'Birthday Party', description: 'Time to celebrate you!', icon: '🎂', applicableToReligion: ['all'] },
+  { value: 'Graduation', label: 'Graduation', description: 'Celebrating achievements!', icon: '🎓', applicableToReligion: ['all'] },
+  { value: 'Casual Wear', label: 'Casual Wear', description: 'Comfortable daily style!', icon: '👕', applicableToReligion: ['all'] },
+  { value: 'Office/Professional', label: 'Office/Professional', description: 'Professional and chic!', icon: '💼', applicableToReligion: ['all'] },
+  { value: 'Party/Social (General)', label: 'Party/Social (General)', description: 'Trendy and stylish!', icon: '🎉', applicableToReligion: ['all'] },
+  { value: 'Other Specific Event', label: 'Other Specific Event', description: 'Tell me more in preferences!', icon: '📌', applicableToReligion: ['all'] }
+];
+
+
 function App() {
   const [hasAgreedToPrivacy, setHasAgreedToPrivacy] = useState(false); // Add state for privacy agreement
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -130,7 +155,7 @@ function App() {
         // agentType: userProfile.gender as ('female' | 'male' | undefined)
       }]);
 
-      const delay = isInitialCall ? 500 : Math.random() * (2000 - 1200) + 1200; // Shorter delay for first question
+      const delay = isInitialCall ? 500 : Math.random() * (1500 - 1000) + 1000; // Adjusted delay range
 
       setTimeout(() => {
         setMessages(prev => prev.filter(m => m.id !== 'typing-bot')); // Remove typing indicator
@@ -147,7 +172,7 @@ function App() {
   const handleAnswer = async (answer: string) => {
     if (!answer.trim()) return;
 
-    const question = formQuestions[currentQuestionIndex];
+    const currentQuestionObject = formQuestions[currentQuestionIndex];
     const userMessage: ChatMessage = {
       id: `a-${currentQuestionIndex}`,
       type: 'user',
@@ -157,9 +182,17 @@ function App() {
 
     setMessages(prev => [...prev, userMessage]);
 
-    const tempProfile = { ...userProfile, [question.id]: answer };
-    setUserProfile(tempProfile);
-    setCurrentAnswer('');
+    let updatedProfile = { ...userProfile, [currentQuestionObject.id]: answer };
+
+    // If the current question was 'religion' and the value changed, reset eventType
+    if (currentQuestionObject.id === 'religion' && userProfile.religion !== answer) {
+      updatedProfile = { ...updatedProfile, eventType: '' };
+       // Also, if the next question happens to be eventType, its currentAnswer should be cleared.
+      // However, currentAnswer is generally cleared below, which should suffice.
+    }
+
+    setUserProfile(updatedProfile);
+    setCurrentAnswer(''); // Clear current answer after processing
 
     if (currentQuestionIndex < formQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -170,7 +203,7 @@ function App() {
       }, 800);
     } else {
       setIsCompleted(true);
-      const finalProfile = tempProfile as UserProfile;
+      const finalProfile = updatedProfile as UserProfile; // Use the potentially modified updatedProfile
       const name = finalProfile.name || 'Friend';
       const agentGender = finalProfile.gender as ('female' | 'male' | undefined);
       const language = finalProfile.language;
@@ -241,7 +274,7 @@ function App() {
               // agentType: agentGender
             };
             setMessages(prev => [...prev, successMessageObj]);
-          }, 1200);
+          }, 1000); // Adjusted delay for success/error message
 
         } catch (err) {
           console.error('Error generating recommendations:', err);
@@ -260,14 +293,45 @@ function App() {
               id: 'error-recs', type: 'bot', content: errorMsgContent, timestamp: new Date(),
               // agentType: agentGender
             }]);
-          }, 1200);
+          }, 1000); // Adjusted delay for success/error message
         }
-      }, 1500); // Delay before showing completionMessage and starting API call
+      }, 1000); // Adjusted delay before showing completionMessage and starting API call
     }
   };
 
   const getCurrentQuestion = () => {
-    return currentQuestionIndex < formQuestions.length ? formQuestions[currentQuestionIndex] : null;
+    if (currentQuestionIndex >= formQuestions.length) return null;
+
+    const questionData = formQuestions[currentQuestionIndex];
+
+    if (questionData.id === 'eventType') {
+      const userReligion = userProfile.religion || '';
+      // Religions that should only see 'all' events + specific events if they match
+      const generalOrUnspecifiedReligions = ['General/Other', 'Prefer not to say', ''];
+
+      let filteredEventOptions = MASTER_EVENT_OPTIONS.filter(option => {
+        if (generalOrUnspecifiedReligions.includes(userReligion)) {
+          return option.applicableToReligion.includes('all');
+        }
+        return option.applicableToReligion.includes(userReligion) || option.applicableToReligion.includes('all');
+      });
+
+      // If no specific options are found for a set religion (excluding general/unspecified),
+      // default to showing all 'all' options. This prevents an empty list if religion is set but has no specific events.
+      if (!generalOrUnspecifiedReligions.includes(userReligion) && filteredEventOptions.filter(opt => !opt.applicableToReligion.includes('all')).length === 0) {
+         filteredEventOptions = MASTER_EVENT_OPTIONS.filter(option => option.applicableToReligion.includes('all'));
+      }
+
+      // Ensure "Other Specific Event" is always an option if eventType is being shown
+      const otherEventOption = MASTER_EVENT_OPTIONS.find(opt => opt.value === 'Other Specific Event');
+      if (otherEventOption && !filteredEventOptions.some(opt => opt.value === 'Other Specific Event')) {
+        filteredEventOptions.push(otherEventOption);
+      }
+
+
+      return { ...questionData, options: filteredEventOptions };
+    }
+    return questionData;
   };
 
   const currentQuestion = getCurrentQuestion();
@@ -278,7 +342,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-white">
-      <Header />
+      <Header agentPersona={userProfile.gender as ('female' | 'male' | undefined)} />
       
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Chat Messages */}
